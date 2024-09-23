@@ -1,19 +1,24 @@
-import { useState } from 'react';
+import { useState, useContext} from 'react';
 import { Dropdown, Form, InputNumber, Button } from 'antd';
 import { TableOutlined } from '@ant-design/icons';
-
+import { isMarkdownTable } from './markdown-table';
+import { AppContext } from './App';
 
 interface TableButtonProps {
-  isTableSelected: boolean;
   onFormatSelectedTable: () => void; // Định nghĩa callback handleUpperCase
   onGenerateTable: (row: number, column: number) => void; // Định nghĩa callback handleAppendText
 }
 
-const TableButton = ({ isTableSelected, onFormatSelectedTable, onGenerateTable }: TableButtonProps) => {
+const TableButton = ({ onFormatSelectedTable, onGenerateTable }: TableButtonProps) => {
   const [formVisible, setFormVisible] = useState(false);
+  const { selectedText } = useContext(AppContext);
 
   const handleBtnTableClick = () => {
-    onFormatSelectedTable();
+    if (isMarkdownTable(selectedText)) {
+      onFormatSelectedTable();
+    } else {
+      setFormVisible(true);
+    }
   };
 
 
@@ -23,8 +28,7 @@ const TableButton = ({ isTableSelected, onFormatSelectedTable, onGenerateTable }
     setFormVisible(false); // Ẩn form sau khi submit
   };
 
-
-  const form = (
+  const popupForm = (
     <div style={{ 
       padding: '15px', 
       maxWidth: '300px', 
@@ -68,18 +72,14 @@ const TableButton = ({ isTableSelected, onFormatSelectedTable, onGenerateTable }
 
   return (
     <div style={{ padding: '20px' }}>
-      {!isTableSelected ? (
-        <Dropdown 
-        overlay={form} 
+      <Dropdown 
+        overlay={popupForm} 
         trigger={['click']}
         open={formVisible}
-        onOpenChange={setFormVisible}
+        onOpenChange={isMarkdownTable(selectedText) ? undefined : setFormVisible}
         >
-          <Button icon={<TableOutlined />} type="text" />
+          <Button icon={<TableOutlined />} type="text" onClick={handleBtnTableClick}/>
         </Dropdown>
-      ) : (
-        <Button title="Bảng" icon={<TableOutlined />} type="text" onClick={handleBtnTableClick}/>
-      )}
     </div>
   );
 };
